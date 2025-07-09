@@ -1,0 +1,69 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: rook-ceph-mcp
+  namespace: rook-ceph
+
+resources:
+  - apps/rook-operator.yaml
+  - apps/monitoring-stack.yaml
+  - apps/security.yaml
+  - cluster-manifests/ceph-cluster.yaml
+  - cluster-manifests/block-pool.yaml
+  - cluster-manifests/object-store.yaml
+
+commonLabels:
+  app.kubernetes.io/name: rook-ceph
+  app.kubernetes.io/instance: rook-ceph-mcp
+  app.kubernetes.io/component: storage
+  app.kubernetes.io/part-of: rook-ceph
+  app.kubernetes.io/managed-by: rook-ceph-mcp
+
+namespace: rook-ceph
+
+images:
+  - name: rook/ceph
+    newTag: v1.12.0
+  - name: quay.io/ceph/ceph
+    newTag: v18.2.0
+
+configMapGenerator:
+  - name: rook-ceph-config
+    literals:
+      - ROOK_LOG_LEVEL=INFO
+      - ROOK_CEPH_STATUS_CHECK_INTERVAL=60s
+      - ROOK_MON_HEALTHCHECK_INTERVAL=45s
+      - ROOK_DISCOVER_DEVICES_INTERVAL=60m
+
+secretGenerator:
+  - name: rook-ceph-mon
+    type: Opaque
+    literals:
+      - mon-secret=base64-encoded-secret
+      - admin-secret=base64-encoded-admin-secret
+
+patches:
+  - target:
+      kind: Deployment
+      name: rook-ceph-operator
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 1000m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+
+replicas:
+  - name: rook-ceph-operator
+    count: 1
+
+vars:
+  - name: ROOK_NAMESPACE
+    objref:
+      kind: Namespace
+      name: rook-ceph
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name

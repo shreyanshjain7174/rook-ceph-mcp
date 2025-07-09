@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-mgr-dashboard
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+spec:
+  ports:
+  - name: dashboard
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  - name: prometheus
+    port: 9283
+    protocol: TCP
+    targetPort: 9283
+  selector:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-mgr-dashboard-external-https
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+spec:
+  ports:
+  - name: dashboard
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+  sessionAffinity: None
+  type: NodePort
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rook-ceph-mgr
+  namespace: rook-ceph
+  labels:
+    team: rook
+spec:
+  namespaceSelector:
+    matchNames:
+    - rook-ceph
+  selector:
+    matchLabels:
+      app: rook-ceph-mgr
+      rook_cluster: rook-ceph
+  endpoints:
+  - port: prometheus
+    path: /metrics
+    interval: 5s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: prometheus-ceph-rules
+  namespace: rook-ceph
+  labels:
+    prometheus: rook-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: ceph.rules
+    rules:
+    - alert: CephHealthError
+      expr: ceph_health_status == 2
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ceph is in an ERROR state"
+        description: "Ceph cluster health status is ERROR"
+    - alert: CephHealthWarning
+      expr: ceph_health_status == 1
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Ceph is in a WARNING state"
+        description: "Ceph cluster health status is WARNING"
+    - alert: CephOSDDown
+      expr: ceph_osd_up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ceph OSD Down"
+        description: "Ceph OSD {{ $labels.ceph_daemon }} is down"
+    - alert: CephOSDNearFull
+      expr: ceph_osd_stat_bytes_used / ceph_osd_stat_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Ceph OSD near full"
+        description: "Ceph OSD {{ $labels.ceph_daemon }} is {{ $value }}% full"
+    - alert: CephOSDFull
+      expr: ceph_osd_stat_bytes_used / ceph_osd_stat_bytes * 100 > 95
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ceph OSD full"
+        description: "Ceph OSD {{ $labels.ceph_daemon }} is {{ $value }}% full"
+    - alert: CephPGsInactive
+      expr: ceph_pg_active != ceph_pg_total
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ceph PGs inactive"
+        description: "{{ $value }} PGs have been inactive for more than 5 minutes"
+    - alert: CephPGsUnclean
+      expr: ceph_pg_clean != ceph_pg_total
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Ceph PGs unclean"
+        description: "{{ $value }} PGs have been unclean for more than 15 minutes"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-monitoring
+  namespace: rook-ceph
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    scrape_configs:
+      - job_name: 'ceph-mgr'
+        static_configs:
+          - targets: ['rook-ceph-mgr-dashboard:9283']
+        
+      - job_name: 'ceph-exporter'
+        static_configs:
+          - targets: ['rook-ceph-exporter:9926']
+        
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - rook-ceph
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            action: keep
+            regex: node-exporter
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: node-exporter
