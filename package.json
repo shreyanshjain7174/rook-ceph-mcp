@@ -1,0 +1,39 @@
+{
+  "name": "rook-ceph-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Rook Ceph storage operations",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "jest"
+  },
+  "keywords": ["mcp", "rook", "ceph", "kubernetes", "storage"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@kubernetes/client-node": "^0.20.0",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.5",
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/test"],
+    "testMatch": ["**/*.test.ts"],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    }
+  }
+}
