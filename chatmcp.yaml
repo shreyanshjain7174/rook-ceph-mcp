@@ -1,0 +1,106 @@
+name: rook-ceph-mcp
+version: "1.0.0"
+description: "MCP server for managing Rook Ceph storage clusters in Kubernetes environments"
+author: ""
+license: MIT
+repository: "https://github.com/shreyanshjain7174/rook-ceph-mcp"
+
+# Server capabilities
+capabilities:
+  tools: true
+  resources: true
+  prompts: true
+
+# Tool definitions
+tools:
+  - name: list_clusters
+    description: "List all Ceph clusters in the Kubernetes environment"
+    category: "cluster-management"
+    
+  - name: get_cluster_status
+    description: "Get the status of a specific Ceph cluster"
+    category: "cluster-management"
+    
+  - name: list_block_pools
+    description: "List all Ceph block pools"
+    category: "storage-resources"
+    
+  - name: list_filesystems
+    description: "List all Ceph filesystems"
+    category: "storage-resources"
+    
+  - name: list_object_stores
+    description: "List all Ceph object stores"
+    category: "storage-resources"
+    
+  - name: create_block_pool
+    description: "Create a new Ceph block pool"
+    category: "resource-management"
+    
+  - name: delete_resource
+    description: "Delete a Rook Ceph resource"
+    category: "resource-management"
+
+# Resource definitions
+resources:
+  - uri: "rook-ceph://manifests/cluster"
+    name: "Ceph Cluster Manifest Template"
+    description: "Template for creating a Ceph cluster"
+    mimeType: "application/yaml"
+    
+  - uri: "rook-ceph://manifests/block-pool"
+    name: "Block Pool Manifest Template"
+    description: "Template for creating a Ceph block pool"
+    mimeType: "application/yaml"
+    
+  - uri: "rook-ceph://manifests/filesystem"
+    name: "Filesystem Manifest Template"
+    description: "Template for creating a Ceph filesystem"
+    mimeType: "application/yaml"
+    
+  - uri: "rook-ceph://manifests/object-store"
+    name: "Object Store Manifest Template"
+    description: "Template for creating a Ceph object store"
+    mimeType: "application/yaml"
+
+# Prompt definitions
+prompts:
+  - name: setup_cluster
+    description: "Guide for setting up a new Rook Ceph cluster"
+    category: "setup"
+    
+  - name: troubleshoot_cluster
+    description: "Troubleshooting guide for Ceph cluster issues"
+    category: "troubleshooting"
+
+# Server configuration
+server:
+  port: 3000
+  transport: "http"
+  cors: true
+  
+# Environment requirements
+requirements:
+  kubernetes: true
+  rook-ceph-operator: true
+  kubectl: true
+  
+# Tags for categorization
+tags:
+  - kubernetes
+  - storage
+  - ceph
+  - rook
+  - devops
+  - infrastructure
+
+# Keywords for search
+keywords:
+  - mcp
+  - rook
+  - ceph
+  - kubernetes
+  - storage
+  - block-storage
+  - object-storage
+  - filesystem

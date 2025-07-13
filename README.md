@@ -12,6 +12,8 @@ A Model Context Protocol (MCP) server for managing Rook Ceph storage clusters in
 
 ## Installation
 
+### Local Development (stdio transport)
+
 1. Install dependencies:
 ```bash
 npm install
@@ -24,7 +26,36 @@ npm run build
 
 3. Start the server:
 ```bash
+npm run start:stdio
+```
+
+### Cloud Hosting (HTTP transport)
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Build the project:
+```bash
+npm run build
+```
+
+3. Start the HTTP server:
+```bash
 npm start
+```
+
+### Docker Deployment
+
+1. Build the Docker image:
+```bash
+docker build -t rook-ceph-mcp .
+```
+
+2. Run the container:
+```bash
+docker run -p 3000:3000 rook-ceph-mcp
 ```
 
 ## Configuration
@@ -124,6 +155,18 @@ Each branch contains:
 └── README.md
 ```
 
+## API Endpoints (HTTP Mode)
+
+When running in HTTP mode, the server exposes these endpoints:
+
+- `GET /health` - Health check
+- `GET /mcp/tools` - List available tools
+- `POST /mcp/call-tool` - Execute a tool
+- `GET /mcp/resources` - List available resources
+- `POST /mcp/read-resource` - Read a resource
+- `GET /mcp/prompts` - List available prompts
+- `POST /mcp/get-prompt` - Get a prompt
+
 ## Development
 
 ### Building
@@ -131,7 +174,12 @@ Each branch contains:
 npm run build
 ```
 
-### Development mode
+### Development mode (stdio)
+```bash
+npm run dev:stdio
+```
+
+### Development mode (HTTP)
 ```bash
 npm run dev
 ```
