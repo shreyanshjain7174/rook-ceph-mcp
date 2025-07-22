@@ -1,0 +1,150 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph-staging
+  namespace: rook-ceph-staging
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.0
+  dataDirHostPath: /var/lib/rook-staging
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+  waitTimeoutForHealthyOSDInMinutes: 7
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 2
+    modules:
+      - name: pg_autoscaler
+        enabled: true
+      - name: dashboard
+        enabled: true
+  dashboard:
+    enabled: true
+    ssl: true
+    port: 8443
+  monitoring:
+    enabled: true
+  network:
+    provider: ""
+  rbdMirroring:
+    workers: 1
+  crashCollector:
+    disable: false
+  logCollector:
+    enabled: true
+    periodicity: daily
+    maxLogSize: 300M
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: quick
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: false
+  removeOSDsIfOutAndSafeToRemove: false
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    nodes:
+      - name: "staging-node-1"
+        devices:
+          - name: "sdb"
+          - name: "sdc"
+      - name: "staging-node-2"
+        devices:
+          - name: "sdb"
+          - name: "sdc"
+      - name: "staging-node-3"
+        devices:
+          - name: "sdb"
+          - name: "sdc"
+    config:
+      osdsPerDevice: "1"
+  disruptionManagement:
+    managePodBudgets: true
+    osdMaintenanceTimeout: 20
+    pgHealthCheckTimeout: 0
+  healthCheck:
+    daemonHealth:
+      status:
+        disabled: false
+        interval: 45s
+      mon:
+        disabled: false
+        interval: 40s
+      osd:
+        disabled: false
+        interval: 45s
+      mgr:
+        disabled: false
+        interval: 45s
+    livenessProbe:
+      mon:
+        disabled: false
+      mgr:
+        disabled: false
+      osd:
+        disabled: false
+  priorityClassNames:
+    mon: system-node-critical
+    osd: system-node-critical
+    mgr: system-cluster-critical
+  resources:
+    mgr:
+      limits:
+        cpu: 750m
+        memory: 768Mi
+      requests:
+        cpu: 300m
+        memory: 256Mi
+    mon:
+      limits:
+        cpu: 1500m
+        memory: 1536Mi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    osd:
+      limits:
+        cpu: 1500m
+        memory: 3Gi
+      requests:
+        cpu: 750m
+        memory: 2Gi
+    prepareosd:
+      limits:
+        cpu: 400m
+        memory: 300Mi
+      requests:
+        cpu: 300m
+        memory: 50Mi
+    mgr-sidecar:
+      limits:
+        cpu: 400m
+        memory: 75Mi
+      requests:
+        cpu: 75m
+        memory: 30Mi
+    crashcollector:
+      limits:
+        cpu: 400m
+        memory: 45Mi
+      requests:
+        cpu: 75m
+        memory: 45Mi
+    logcollector:
+      limits:
+        cpu: 400m
+        memory: 768Mi
+      requests:
+        cpu: 75m
+        memory: 75Mi
+    cleanup:
+      limits:
+        cpu: 400m
+        memory: 768Mi
+      requests:
+        cpu: 300m
+        memory: 75Mi

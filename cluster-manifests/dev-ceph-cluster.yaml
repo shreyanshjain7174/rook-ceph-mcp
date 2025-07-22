@@ -1,0 +1,141 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph-dev
+  namespace: rook-ceph-dev
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.0
+  dataDirHostPath: /var/lib/rook-dev
+  skipUpgradeChecks: true
+  continueUpgradeAfterChecksEvenIfNotHealthy: true
+  waitTimeoutForHealthyOSDInMinutes: 5
+  mon:
+    count: 1
+    allowMultiplePerNode: true
+  mgr:
+    count: 1
+    modules:
+      - name: pg_autoscaler
+        enabled: true
+      - name: dashboard
+        enabled: true
+  dashboard:
+    enabled: true
+    ssl: false
+    port: 8080
+  monitoring:
+    enabled: true
+  network:
+    provider: ""
+  rbdMirroring:
+    workers: 0
+  crashCollector:
+    disable: true
+  logCollector:
+    enabled: true
+    periodicity: daily
+    maxLogSize: 100M
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: quick
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: true
+  removeOSDsIfOutAndSafeToRemove: true
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      - name: "dev-node-1"
+        devices:
+          - name: "sdb"
+    config:
+      osdsPerDevice: "1"
+  disruptionManagement:
+    managePodBudgets: false
+    osdMaintenanceTimeout: 10
+    pgHealthCheckTimeout: 0
+  healthCheck:
+    daemonHealth:
+      status:
+        disabled: false
+        interval: 30s
+      mon:
+        disabled: false
+        interval: 30s
+      osd:
+        disabled: false
+        interval: 30s
+      mgr:
+        disabled: false
+        interval: 30s
+    livenessProbe:
+      mon:
+        disabled: false
+      mgr:
+        disabled: false
+      osd:
+        disabled: false
+  priorityClassNames:
+    mon: ""
+    osd: ""
+    mgr: ""
+  resources:
+    mgr:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    mon:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    osd:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    prepareosd:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        memory: 50Mi
+    mgr-sidecar:
+      limits:
+        cpu: 200m
+        memory: 50Mi
+      requests:
+        cpu: 50m
+        memory: 20Mi
+    crashcollector:
+      limits:
+        cpu: 200m
+        memory: 30Mi
+      requests:
+        cpu: 50m
+        memory: 30Mi
+    logcollector:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 50m
+        memory: 50Mi
+    cleanup:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 50Mi
