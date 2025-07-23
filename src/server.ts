@@ -2,6 +2,8 @@
 
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { 
   CallToolRequestSchema, 
@@ -11,8 +13,8 @@ import {
   GetPromptRequestSchema,
   ListPromptsRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
-import { RookCephClient } from './rook-ceph-client';
-import { manifestTemplates } from './templates';
+import { RookCephClient } from './rook-ceph-client.js';
+import { manifestTemplates } from './templates.js';
 
 class RookCephMCPServer {
   private server: Server;
@@ -469,7 +471,10 @@ class RookCephMCPServer {
 }
 
 // Start the server
-if (require.main === module) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+if (import.meta.url === `file://${process.argv[1]}`) {
   const server = new RookCephMCPServer();
   const port = parseInt(process.env.PORT || '3000');
   server.start(port);

@@ -2,6 +2,7 @@
   "name": "rook-ceph-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for Rook Ceph storage operations",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

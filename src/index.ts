@@ -10,8 +10,8 @@ import {
   GetPromptRequestSchema,
   ListPromptsRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
-import { RookCephClient } from './rook-ceph-client';
-import { manifestTemplates } from './templates';
+import { RookCephClient } from './rook-ceph-client.js';
+import { manifestTemplates } from './templates.js';
 
 const server = new Server(
   {

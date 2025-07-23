@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Test HTTP mode
+  test-http:
+    image: curlimages/curl:8.5.0
+    depends_on:
+      rook-ceph-mcp-http:
+        condition: service_healthy
+    command: |
+      sh -c '
+        echo "Testing health endpoint..."
+        curl -s http://rook-ceph-mcp-http:3000/health | grep "healthy" || exit 1
+        
+        echo "Testing MCP tools list..."
+        curl -s http://rook-ceph-mcp-http:3000/mcp/tools | grep "list_clusters" || exit 1
+        
+        echo "Testing MCP resources list..."
+        curl -s http://rook-ceph-mcp-http:3000/mcp/resources | grep "manifest" || exit 1
+        
+        echo "All HTTP tests passed!"
+      '
+
+  # Test stdio mode
+  test-stdio:
+    build:
+      context: .
+      dockerfile: Dockerfile.stdio
+    depends_on:
+      - rook-ceph-mcp-stdio
+    command: |
+      sh -c '
+        echo "Testing stdio JSON-RPC..."
+        echo "{\"jsonrpc\": \"2.0\", \"method\": \"tools/list\", \"params\": {}, \"id\": 1}" | npm run start:stdio | grep "list_clusters" || exit 1
+        echo "All stdio tests passed!"
+      '
